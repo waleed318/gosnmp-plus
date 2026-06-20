@@ -1,0 +1,40 @@
+version: "2"
+linters:
+  enable:
+    - errcheck
+    - gosec
+    - staticcheck
+    - revive
+    - depguard
+    - govet
+    - unused
+  settings:
+    depguard:
+      rules:
+        main:
+          deny:
+            - pkg: github.com/waleed318/gosnmp-plus/state
+              desc: retry must not import state
+    revive:
+      rules:
+        - name: exported
+        - name: error-return
+        - name: var-naming
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
