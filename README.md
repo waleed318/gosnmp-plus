@@ -24,7 +24,7 @@ Working directly with `gosnmp` in production exposes several gaps:
 | Status | Milestone | Description |
 |--------|-----------|-------------|
 | ✅ | M1 Scaffold | Module, errors, test agent, CI |
-| 🔲 | M2 Retry | Fixed / Exponential / Jitter backoff |
+| ✅ | M2 Retry | Fixed / Exponential / Jitter backoff |
 | 🔲 | M3 Pool | Per-target connection pool |
 | 🔲 | M4 State | Desired-state reconciliation |
 | 🔲 | M5 Rollback | Atomic Set with snapshot restore |
