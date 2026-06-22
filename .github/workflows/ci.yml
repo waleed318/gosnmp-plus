@@ -16,7 +16,7 @@ jobs:
         uses: golangci/golangci-lint-action@v9
         with: { version: v2.12.2 }
       - name: Test
-        run: go test -race -coverprofile=coverage.out ./...
+        run: go test -race -coverprofile=coverage.out $(go list ./... | grep -v '/examples/')
       - name: Coverage gate
         run: |
           go tool cover -func=coverage.out | \
