@@ -5,12 +5,17 @@ package client
 import (
 	"time"
 
+	"github.com/gosnmp/gosnmp"
+
 	"github.com/waleed318/gosnmp-plus/retry"
 )
 
 const (
 	defaultMaxIdlePerTarget = 2
 	defaultIdleTimeout      = 30 * time.Second
+	defaultCommunity        = "public"
+	defaultRequestTimeout   = 2 * time.Second
+	defaultSNMPRetries      = 1
 )
 
 // Logger is the minimal logging interface accepted by WithLogger. It is
@@ -23,12 +28,17 @@ type noopLogger struct{}
 
 func (noopLogger) Printf(string, ...interface{}) {}
 
-// config holds settings shared by Pool and, in later milestones, Client.
+// config holds settings shared by Pool and Client.
 type config struct {
 	retry            retry.Policy
 	maxIdlePerTarget int
 	idleTimeout      time.Duration
 	logger           Logger
+
+	community      string
+	version        gosnmp.SnmpVersion
+	requestTimeout time.Duration
+	snmpRetries    int
 }
 
 func defaultConfig() config {
@@ -36,6 +46,10 @@ func defaultConfig() config {
 		maxIdlePerTarget: defaultMaxIdlePerTarget,
 		idleTimeout:      defaultIdleTimeout,
 		logger:           noopLogger{},
+		community:        defaultCommunity,
+		version:          gosnmp.Version2c,
+		requestTimeout:   defaultRequestTimeout,
+		snmpRetries:      defaultSNMPRetries,
 	}
 }
 
@@ -61,4 +75,14 @@ func WithPool(maxIdlePerTarget int, idleTimeout time.Duration) Option {
 // dial and close failures. The default is a no-op logger.
 func WithLogger(l Logger) Option {
 	return func(c *config) { c.logger = l }
+}
+
+// WithCredentials sets the SNMP community string and protocol version used
+// when dialing a target. The default is community "public" on
+// gosnmp.Version2c.
+func WithCredentials(community string, version gosnmp.SnmpVersion) Option {
+	return func(c *config) {
+		c.community = community
+		c.version = version
+	}
 }
