@@ -28,7 +28,7 @@ Working directly with `gosnmp` in production exposes several gaps:
 | ✅ | M3 Pool | Per-target connection pool |
 | ✅ | M4 State | Desired-state reconciliation |
 | ✅ | M5 Rollback | Atomic Set with snapshot restore |
-| 🔲 | M6 Release | Docs, examples, v0.1.0 |
+| ✅ | M6 Release | Docs, examples, v0.1.0 |
 
 ## Usage
 
@@ -110,6 +110,14 @@ result, err := reconciler.Apply(ctx, []state.DesiredState{
 })
 // result.Applied / result.Drifted / result.Unchanged / result.RolledBack / result.Errors
 ```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for dev setup, coding standards, and the PR process. Security issues should be reported per [SECURITY.md](SECURITY.md), not as a public issue.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
