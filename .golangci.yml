@@ -11,7 +11,9 @@ linters:
   settings:
     depguard:
       rules:
-        main:
+        retry:
+          files:
+            - "**/retry/**"
           deny:
             - pkg: github.com/waleed318/gosnmp-plus/state
               desc: retry must not import state

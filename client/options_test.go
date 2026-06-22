@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gosnmp/gosnmp"
+
 	"github.com/waleed318/gosnmp-plus/retry"
 )
 
@@ -16,11 +18,30 @@ func TestDefaultConfig(t *testing.T) {
 	if cfg.idleTimeout != defaultIdleTimeout {
 		t.Errorf("idleTimeout = %v, want %v", cfg.idleTimeout, defaultIdleTimeout)
 	}
+	if cfg.community != defaultCommunity {
+		t.Errorf("community = %q, want %q", cfg.community, defaultCommunity)
+	}
+	if cfg.version != gosnmp.Version2c {
+		t.Errorf("version = %v, want Version2c", cfg.version)
+	}
 	if cfg.logger == nil {
 		t.Fatal("logger = nil, want noopLogger")
 	}
 	// Must not panic on a nil-safe no-op logger.
 	cfg.logger.Printf("test %s", "value")
+}
+
+func TestWithCredentials(t *testing.T) {
+	cfg := defaultConfig()
+
+	WithCredentials("private", gosnmp.Version1)(&cfg)
+
+	if cfg.community != "private" {
+		t.Errorf("community = %q, want %q", cfg.community, "private")
+	}
+	if cfg.version != gosnmp.Version1 {
+		t.Errorf("version = %v, want Version1", cfg.version)
+	}
 }
 
 func TestWithRetry(t *testing.T) {
