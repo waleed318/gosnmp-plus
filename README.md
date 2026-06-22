@@ -24,11 +24,62 @@ Working directly with `gosnmp` in production exposes several gaps:
 | Status | Milestone | Description |
 |--------|-----------|-------------|
 | ✅ | M1 Scaffold | Module, errors, test agent, CI |
-| 🔲 | M2 Retry | Fixed / Exponential / Jitter backoff |
-| 🔲 | M3 Pool | Per-target connection pool |
-| 🔲 | M4 State | Desired-state reconciliation |
+| ✅ | M2 Retry | Fixed / Exponential / Jitter backoff |
+| ✅ | M3 Pool | Per-target connection pool |
+| ✅ | M4 State | Desired-state reconciliation |
 | 🔲 | M5 Rollback | Atomic Set with snapshot restore |
 | 🔲 | M6 Release | Docs, examples, v0.1.0 |
+
+## Usage
+
+> These snippets cover the packages implemented so far (`retry`, `client.Pool`, `state`). There is no top-level `Client` yet — that lands in M5/M6 and will wire retry, pooling, state, and rollback together behind a single `NewClient(...)` API. Runnable examples under `examples/` follow once that wrapper exists.
+
+### Retry with backoff
+
+```go
+policy := retry.Policy{
+    MaxAttempts: 3,
+    Backoff:     retry.Jitter(retry.Exponential(100*time.Millisecond, 2, 2*time.Second)),
+}
+
+err := policy.Do(ctx, func() error {
+    return doSomethingThatMightTimeOut()
+})
+```
+
+### Per-target connection pool
+
+```go
+factory := func(ctx context.Context, target string) (*gosnmp.GoSNMP, error) {
+    conn := &gosnmp.GoSNMP{Target: target, Port: 161, Community: "public", Version: gosnmp.Version2c, Timeout: 2 * time.Second}
+    if err := conn.Connect(); err != nil {
+        return nil, err
+    }
+    return conn, nil
+}
+
+pool := client.NewPool(factory, client.WithPool(4, 30*time.Second))
+defer pool.Close()
+
+conn, err := pool.Get(ctx, "192.0.2.1:161")
+if err != nil {
+    log.Fatal(err)
+}
+defer pool.Put("192.0.2.1:161", conn)
+```
+
+### Desired-state reconciliation
+
+```go
+// snmpClient is anything satisfying state.SNMPSetter — Get(ctx, oids) and Set(ctx, pdus).
+reconciler := state.NewReconciler(snmpClient)
+
+result, err := reconciler.Apply(ctx, []state.DesiredState{
+    {OID: ".1.3.6.1.2.1.1.5.0", Type: gosnmp.OctetString, Value: []byte("router-1")},
+    {OID: ".1.3.6.1.2.1.2.2.1.7.1", Type: gosnmp.Integer, Value: 1, Tolerance: 0},
+})
+// result.Applied / result.Drifted / result.Unchanged / result.RolledBack / result.Errors
+```
 
 ## License
 
