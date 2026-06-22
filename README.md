@@ -27,12 +27,42 @@ Working directly with `gosnmp` in production exposes several gaps:
 | ✅ | M2 Retry | Fixed / Exponential / Jitter backoff |
 | ✅ | M3 Pool | Per-target connection pool |
 | ✅ | M4 State | Desired-state reconciliation |
-| 🔲 | M5 Rollback | Atomic Set with snapshot restore |
+| ✅ | M5 Rollback | Atomic Set with snapshot restore |
 | 🔲 | M6 Release | Docs, examples, v0.1.0 |
 
 ## Usage
 
-> These snippets cover the packages implemented so far (`retry`, `client.Pool`, `state`). There is no top-level `Client` yet — that lands in M5/M6 and will wire retry, pooling, state, and rollback together behind a single `NewClient(...)` API. Runnable examples under `examples/` follow once that wrapper exists.
+### Quickstart
+
+`client.Client` wires retry, connection pooling, desired-state reconciliation, and rollback together behind a single target. `Get`/`Set` apply the configured retry policy automatically, and `Set` (including the `Set` issued internally by `Reconcile`) always goes through `rollback.Tx` — a failure restores the pre-Set snapshot rather than leaving the agent partially updated.
+
+```go
+c, err := client.NewClient("192.0.2.1:161",
+    client.WithCredentials("public", gosnmp.Version2c),
+    client.WithRetry(retry.Policy{MaxAttempts: 3, Backoff: retry.Exponential(100*time.Millisecond, 2, 2*time.Second)}),
+)
+if err != nil {
+    log.Fatal(err)
+}
+defer c.Close()
+
+packet, err := c.Get(ctx, []string{".1.3.6.1.2.1.1.5.0"})
+
+err = c.Set(ctx, []gosnmp.SnmpPDU{
+    {Name: ".1.3.6.1.2.1.1.5.0", Type: gosnmp.OctetString, Value: []byte("router-1")},
+})
+
+result, err := c.Reconcile(ctx, []state.DesiredState{
+    {OID: ".1.3.6.1.2.1.2.2.1.7.1", Type: gosnmp.Integer, Value: 1},
+})
+// result.Applied / result.Drifted / result.Unchanged / result.RolledBack / result.Errors
+```
+
+Runnable versions of these live under [`examples/`](examples/).
+
+### Advanced: using the lower-level packages directly
+
+`retry`, `client.Pool`, and `state.Reconciler` are independently usable if you don't want the full `Client` wrapper — e.g. to plug your own connection management in front of `state.Reconciler`, or to apply a retry policy to non-SNMP work.
 
 ### Retry with backoff
 
