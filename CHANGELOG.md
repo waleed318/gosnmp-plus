@@ -8,8 +8,16 @@ reaches v1.0.0. Until then, minor versions may include breaking changes.
 
 ## Unreleased
 
+## v0.1.0 — 2026-06-22
+
+Public announcement. M6 complete: the release docs that were still
+missing on top of the M1-M5 functionality and examples already shipped
+in the beta.
+
 ### Added
-- `CONTRIBUTING.md`, `SECURITY.md`, `CHANGELOG.md`
+- `CHANGELOG.md`, `CONTRIBUTING.md`, `SECURITY.md`
+- `AGENTS.md` now tracked in the repository
+- README: Contributing/Changelog sections, M6 marked complete
 
 ## v0.1.0-beta.1 — 2026-06-22
 
