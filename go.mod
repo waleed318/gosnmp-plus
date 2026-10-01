@@ -4,4 +4,4 @@ go 1.24.0
 
 toolchain go1.24.5
 
-require github.com/gosnmp/gosnmp v1.43.2
+require github.com/gosnmp/gosnmp v1.45.0
